@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -7,21 +8,11 @@ from .serializers import CommentSerializer, PostSerializer
 
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Object-level permission to only allow owners of an object to edit it.
-    Assumes the model instance has an `owner` attribute.
-    """
 
     def has_object_permission(self, request, view, obj):
         if request.method == "PATCH" and obj.author == request.user:
             return True
         return obj.author == request.user
-
-    # if request.method in permissions.SAFE_METHODS:
-    #     return True
-    #
-    #     # Instance must have an attribute named `owner`.
-    # return obj.owner == request.user
 
 
 @api_view(['GET', 'POST'])
@@ -41,7 +32,7 @@ def api_comments(request, pk):
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def api_comments_detail(request, pk, pk2):
-    one_comment = Comment.objects.filter(post__id=pk).get(pk=pk2)
+    one_comment = get_object_or_404(Comment, post_id=pk, id=pk2)
     print(one_comment)
     if request.method == 'PUT':
         serializer = CommentSerializer(
@@ -87,10 +78,3 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    # def get_permissions(self):
-    #     if self.request.method == "GET":
-    #         return (permissions.AllowAny(),)
-    #     # if self.request.method == "PATCH" and post.author != request.user:
-    #     #     return Response(status=status.HTTP_403_FORBIDDEN)
-    #     return super().get_permissions()
