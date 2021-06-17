@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets
+from rest_framework.generics import get_object_or_404
 
 from .models import Comment, Post
 from .permission import IsAuthorOrReadOnly
@@ -14,7 +15,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     )
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        post_id = self.kwargs['post_id']
+        post = get_object_or_404(Post, pk=post_id)
+        serializer.save(author=self.request.user, post=post)
 
     def get_queryset(self):
         post_id = self.kwargs['post_id']
