@@ -1,13 +1,12 @@
 from rest_framework import permissions, viewsets
 from rest_framework.generics import get_object_or_404
 
-from .models import Comment, Post
+from .models import Post
 from .permission import IsAuthorOrReadOnly
 from .serializers import CommentSerializer, PostSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
@@ -21,7 +20,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         post_id = self.kwargs['post_id']
-        return Comment.objects.filter(post_id=post_id)
+        post = get_object_or_404(Post, pk=post_id)
+        return post.comments.all()
 
 
 class PostViewSet(viewsets.ModelViewSet):
